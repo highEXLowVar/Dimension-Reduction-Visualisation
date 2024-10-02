@@ -78,7 +78,7 @@ elif algorithm == 't-SNE':
     """)
     start_time = time.time()
     # create t-SNE model
-    tsne_model = TSNE(n_components=n_components, perplexity=perplexity_value)
+    tsne_model = TSNE(n_components=n_components, perplexity=perplexity_value, n_iter=500)
     # fit and transform data
     x_transformed = tsne_model.fit_transform(x_data)
     # end timer
@@ -96,7 +96,8 @@ elif algorithm == 'UMAP':
     """)
     start_time = time.time()
     # create UMAP model
-    umap_model = umap.UMAP(n_neighbors=n_neighbors_value, min_dist=min_dist_value, n_components=n_components)
+    umap_model = umap.UMAP(n_neighbors=n_neighbors_value, min_dist=min_dist_value, n_components=n_components, n_epochs=200)
+    # set n_epchs to 200 to reduce the number of optimization iterations
     # fit and transform data
     x_transformed = umap_model.fit_transform(x_data)
     # end timer
