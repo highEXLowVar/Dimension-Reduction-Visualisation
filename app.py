@@ -1,31 +1,31 @@
-# import all required libraries
+# pulling in everything we need
 import streamlit as st
 import numpy as np
 import pandas as pd
-from sklearn.datasets import load_iris, load_digits  # datasets
-from sklearn.manifold import TSNE  # t-SNE algorithm
-from sklearn.decomposition import PCA  # PCA algorithm
-import umap.umap_ as umap  # UMAP algorithm
-import plotly.express as px  # for plotting
-import time  # to measure computation time
+from sklearn.datasets import load_iris, load_digits  # the toy datasets
+from sklearn.manifold import TSNE  # the tsne bit
+from sklearn.decomposition import PCA  # pca, the classic
+import umap.umap_ as umap  # umap aswell
+import plotly.express as px  # for drawing the charts
+import time  # for timing how long stuff takes
 
 
 
-# Set the app title
+# setting the page title
 st.title('Dimensionality Reduction Visualization')
 
-# Introduction
+# saying hello
 st.write("""
 Welcome! This app lets you explore how different dimensionality reduction algorithms work on real datasets.
 """)
 
-# Explain Dimensionality Reduction
+# explaining dim-red
 st.header('What is Dimensionality Reduction?')
 st.write("""
 Sometimes, data has many features, which makes it hard to visualize or process. Dimensionality reduction helps simplify the data by reducing the number of features while keeping important patterns.
 """)
 
-# Instructions
+#INSTRUCTIONS
 st.header('How to Use This App')
 st.write("""
 1. **Select a Dataset**: Choose either the Iris or Digits dataset from the sidebar.
@@ -38,17 +38,17 @@ st.write("""
 
 
 
-# select the dataset
-dataset_name = st.sidebar.selectbox('Select Dataset', ('Iris', 'Digits'))  # user chooses dataset
+# picking which dataset to use
+dataset_name = st.sidebar.selectbox('Select Dataset', ('Iris', 'Digits'))  # letting the user choose
 
-# load the dataset based on selection
+# loading chosen dataset
 if dataset_name == 'Iris':
-    # loading iris dataset
+    # grabbing the iris one
     iris_data = load_iris()
     x_data = iris_data.data
     y_data = iris_data.target
 elif dataset_name == 'Digits':
-    # loading digits dataset
+    # grabbing the digits one insted
     digits_data = load_digits()
     x_data = digits_data.data
     y_data = digits_data.target
@@ -57,18 +57,18 @@ else:
     x_data = None
     y_data = None
 
-# select the algorithm
-algorithm = st.sidebar.selectbox('Select Algorithm', ('Select','t-SNE', 'UMAP', 'PCA'))  # user chooses algorithm
-n_components = st.sidebar.radio('Number of Components', (2, 3))  # choose number of dimensions
+# choosing the algorithm
+algorithm = st.sidebar.selectbox('Select Algorithm', ('Select','t-SNE', 'UMAP', 'PCA'))  # again up to the user
+n_components = st.sidebar.radio('Number of Components', (2, 3))  # deciding how many dimensions
 
-# perform dimensionality reduction based on algorithm
+# running whichever method got picked
 if algorithm == 'Select':
     st.write('Please select an algorithm.')
     x_transformed = None
 elif algorithm == 't-SNE':
-    # get perplexity from user
+    # asking for the perplexity
     
-    # Add this code to your Streamlit app to include the t-SNE explanation with equations
+    # leaving a note to self, the maths explanation lives further down
 
     
 
@@ -77,14 +77,14 @@ elif algorithm == 't-SNE':
     **Perplexity**: Controls how the algorithm considers neighboring points. Try adjusting it to see how the visualization changes.
     """)
     start_time = time.time()
-    # create t-SNE model
+    # building the tsne model
     tsne_model = TSNE(n_components=n_components, perplexity=perplexity_value, n_iter=500)
-    # fit and transform data
+    # fitting and squishing the data down
     x_transformed = tsne_model.fit_transform(x_data)
-    # end timer
+    # stopping the clock
     end_time = time.time()
 elif algorithm == 'UMAP':
-    # get n_neighbors and min_dist from user
+    # asking for n_neighbors and min_dist
     n_neighbors_value = st.sidebar.slider('Number of Neighbors', 2, 50, 15)
     min_dist_value = st.sidebar.slider('Minimum Distance', 0.0, 1.0, 0.1)
     st.write("""
@@ -95,52 +95,52 @@ elif algorithm == 'UMAP':
     **Minimum Distance**: Smaller values make clusters tighter.
     """)
     start_time = time.time()
-    # create UMAP model
+    # building the umap model
     umap_model = umap.UMAP(n_neighbors=n_neighbors_value, min_dist=min_dist_value, n_components=n_components, n_epochs=200)
-    # set n_epchs to 200 to reduce the number of optimization iterations
-    # fit and transform data
+    # keeping epochs at 200 so its not too slow
+    # fitting and squishing it down
     x_transformed = umap_model.fit_transform(x_data)
-    # end timer
+    # stopping the clock
     end_time = time.time()
 elif algorithm == 'PCA':
     st.write("""
     **About PCA**: A simple method that reduces dimensions by projecting data onto the directions with the most variance.
     """)
-    # start timer
+    # starting the clock
     start_time = time.time()
-    # create PCA model
+    # building the pca model
     pca_model = PCA(n_components=n_components)
-    # fit and transform data
+    # fitting and projecting the data
     x_transformed = pca_model.fit_transform(x_data)
-    # end timer
+    # stopping the clock
     end_time = time.time()
 else:
     st.write('Algorithm not recognized.')
     x_transformed = None
 
-# prepare data for plotting
+# getting the data ready for plotting
 if x_transformed is not None:
-    # create dimension names
+    # naming the new dimensions
     dimension_names = []
     for i in range(n_components):
         dimension_names.append('Dimension ' + str(i+1))
-    # create dataframe
+    # bundling it into a dataframe
     data_frame = pd.DataFrame(x_transformed, columns=dimension_names)
     data_frame['label'] = y_data.astype(str)
 
-    # plot the results
+    # drawing the results
     if n_components == 2:
-        # create 2D scatter plot
+        # making a 2d scatter
         figure = px.scatter(data_frame, x='Dimension 1', y='Dimension 2', color='label', title=algorithm + ' Visualization')
         st.plotly_chart(figure)
     elif n_components == 3:
-        # create 3D scatter plot
+        # making a 3d scatter instead
         figure = px.scatter_3d(data_frame, x='Dimension 1', y='Dimension 2', z='Dimension 3', color='label', title=algorithm + ' Visualization')
         st.plotly_chart(figure)
     else:
         st.write('Cannot plot with the selected number of components.')
 
-    # display the time taken
+    # showing how long it took
     time_elapsed = end_time - start_time
     st.write('Time taken: {:.2f} seconds'.format(time_elapsed))
 else:
@@ -341,7 +341,7 @@ if algorithm == 't-SNE':
     t-SNE is a fascinating tool that brings high-dimensional data to life. By understanding how it works, you can better interpret the visualizations and gain insights into your data.
     """)
 elif algorithm == 'UMAP':
-    # Display the UMAP explanation
+    # explaining how umap works
     st.header('UMAP: Unveiling the Manifold Structure of High-Dimensional Data')
 
     st.write("""
@@ -508,7 +508,7 @@ elif algorithm == 'UMAP':
     UMAP is a powerful tool for visualizing and understanding high-dimensional data. By experimenting with the parameters and datasets, you can gain insights into the structure and relationships within your data.
     """)
 elif algorithm == 'PCA':
-    # Display the PCA explanation
+    # explaining how pca works
     st.header('PCA: Simplifying High-Dimensional Data')
 
     st.write("""
@@ -630,20 +630,20 @@ elif algorithm == 'PCA':
     PCA is a fundamental tool in data analysis and machine learning. By experimenting with PCA in this app, you can gain insights into the structure of your data and the importance of different features.
     """)
 
-    # Start timer
+    # starting the clock
     start_time = time.time()
 
-    # Create and fit the PCA model
+    # building and fitting pca
     pca_model = PCA(n_components=n_components)
     x_transformed = pca_model.fit_transform(x_data)
 
-    # End timer
+    # stopping the clock
     end_time = time.time()
 
-    # Calculate the explained variance ratio
+    # working out the explained varience
     explained_variance = pca_model.explained_variance_ratio_
 
-    # Display the explained variance
+    # showing the explained varience
     st.write(f"Explained Variance Ratio of the selected components: {explained_variance.sum():.2f}")
     
    
@@ -652,7 +652,7 @@ Feel free to experiment with different parameters and see how they affect the vi
 """)
 
 
-# extra comments
-# TODO: Add more datasets and algorithms
-# Note: This is a simple app for visualizing dimensionality reduction
-# The code might have some inefficiencies
+# ODDS AND ENDS
+# todo: chuck in more datasets and algos when i get time
+# note: its only a small app for visualising dim-red
+# the code is probaly a bit inefficient in places
